@@ -1,7 +1,7 @@
 from http import HTTPStatus
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
-from model_pipeline import execute
+from model_pipeline import generate, regenerate
 
 app = Flask(__name__)
 CORS(app, resources={r"/": {"origins" : "*"}})
@@ -10,11 +10,11 @@ CORS(app, resources={r"/": {"origins" : "*"}})
 def hello_world():
     return 'Hello, World!'
 
-@app.route('/', methods = ['POST'])
+@app.route('/dream/generate', methods = ['POST'])
 def generate_dream() :
     body = request.get_json()
     utterance = body['utterance']
-    modelResult = execute(utterance)
+    modelResult = generate(utterance)
 
     if modelResult.error == True :
         return jsonify({
@@ -24,10 +24,29 @@ def generate_dream() :
     return jsonify({
         "status" : HTTPStatus.OK,
         "dream_title" : modelResult.data['dream_title'],
+        "eng_dream_title" : modelResult.data['eng_dream_title'],
         "possible_meanings" : modelResult.data['possible_meanings'],
-        # "recommended_tarot_card" : data['recommended_tarot_card'],
+        "recommended_tarot_card" : modelResult.data['recommended_tarot_card'],
         "image_url" : modelResult.data['image_url']
     })
+
+@app.route('/dream/regenerate', methods = ['POST'])
+def regenerate_dream() :
+    body = request.get_json()
+    dream = body['dream']
+    tarot_card = body['tarot_card']
+    modelResult = regenerate(dream, tarot_card)
+
+    if modelResult.error == True :
+        return jsonify({
+            "status" : HTTPStatus.INTERNAL_SERVER_ERROR,
+        })
+    
+    return jsonify({
+        "status" : HTTPStatus.OK,
+        "image_url" : modelResult.data['image_url']
+    })
+
 
 if __name__ == "__main__":
     app.run(debug = True, port = 5000, host = '0.0.0.0')

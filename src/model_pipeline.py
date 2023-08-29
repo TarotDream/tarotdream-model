@@ -27,7 +27,12 @@ def exectueGpt(text) :
         model = "gpt-3.5-turbo",
         messages = [
         {"role": "system", "content": "You are a helpful assistant who interprets dreams and recommends appropriate tarot cards."},
-        {"role": "user", "content": "I had a dream about a car accident. Please interpret this dream and recommend 1 out of 78 tarot cards. Give me the respone in JSON format."},
+        {"role": "user", "content": """
+            I had a dream about a car accident.
+            Please interpret this dream and recommend 1 out of 22 major arcana tarot cards.
+            (Judgement, Justcie, Strength, Temperance, The Chariot, The Death, The Devil, The Emperor, The Empress, The Fool, The Hanged Man, The Hermit, The Hierophant, The High Priestess, The Lovers, The Magician, The Moon, The Star, The Sun, The Tower, The World, Wheel of Fortune)
+            Give me the respone in JSON format.
+         """},
         {"role": "assistant", "content": json.dumps(gpt_template)},
         {"role": "user", "content": text + " Please interpret this dream and recommend 1 out of 78 tarot cards. Give me the respone in JSON format."}   
     ])
@@ -67,8 +72,23 @@ def executeDalle(dream, tarot_card) :
     else :
         return None
 
+def regenerate(dream, tarot_card) :
+    global OPEN_AI_API_KEY, OPEN_AI_API_URL
 
-def execute(utterance) :
+    load_dotenv('../.env')
+    OPEN_AI_API_KEY = os.getenv("OPEN_AI_API_KEY")
+    OPEN_AI_API_URL = os.getenv("OPEN_AI_API_URL")
+
+    openai.api_key = OPEN_AI_API_KEY
+
+    image_url = executeDalle(dream, tarot_card)
+    data = {
+        'image_url' : image_url
+    }
+    return ModelResult(False, data)
+
+
+def generate(utterance) :
     global OPEN_AI_API_KEY, OPEN_AI_API_URL
 
     load_dotenv('../.env')
@@ -92,10 +112,13 @@ def execute(utterance) :
     # meaining_keys = [meaning.split(':')[0] for meaning in possible_meanings]
     kor_dream_title = eng_to_kor_translation(dream_title)
     kor_possible_meanings = [eng_to_kor_translation(meaning) for meaning in possible_meanings]
+    kor_possible_meanings = [meaning for meaning in kor_possible_meanings if len(meaning) > 0]
 
     data = {
         'dream_title' : kor_dream_title,
+        'eng_dream_title' : dream_title,
         'possible_meanings' : kor_possible_meanings,
+        'recommended_tarot_card' : recommended_tarot_card,
         'image_url' : image_url
     }
     return ModelResult(False, data)
