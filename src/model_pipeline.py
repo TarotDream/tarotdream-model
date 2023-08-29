@@ -40,6 +40,7 @@ def exectueGpt(text) :
 
 def executeDalle(dream, tarot_card) :
     tarot_card = tarot_card.lower().replace(' ', '_')
+    tarot_card = 'the_tower'
     image = Image.open("./img/image/{tarot_card}.png".format(tarot_card = tarot_card)).convert("RGBA")
     mask = Image.open("./img/mask/{tarot_card}_mask.png".format(tarot_card = tarot_card)).convert("RGBA")
     b1 = io.BytesIO()
