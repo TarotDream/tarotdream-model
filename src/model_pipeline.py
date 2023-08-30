@@ -10,33 +10,30 @@ from dotenv import load_dotenv
 from papago import kor_to_eng_translation, eng_to_kor_translation
 
 gpt_template = {
-  "dream_title": "Dream About a Car Accident",
+  "dream_title": "A Car Accident on the Highway",
   "possible_meanings": [
-    "Loss of Control: Car accidents often relate to a loss of control in some area of your life. It could indicate that you're feeling overwhelmed or struggling with a situation where you feel like you're not in control.",
-    "Fear of Change: Cars in dreams can also represent the path we're on in life. An accident might indicate a fear of change or unexpected disruptions that could derail your plans.",
-    "Conflict or Negativity: Car accidents might symbolize conflicts, arguments, or negative experiences that you fear or are currently facing.",
-    "Life's Fragility: Car accidents can remind us of the fragility of life and the unpredictability of events. It could prompt you to reflect on your priorities and make sure you're living in alignment with what truly matters to you.",
-    "Anxiety and Stress: Dreams about accidents can be linked to anxiety or stress in your waking life. It could suggest that you're grappling with these emotions.",
-    "Warning Sign: Sometimes, dreams of accidents might serve as a symbolic warning to pay attention to something in your life that needs your immediate attention."
-  ],
-  "recommended_tarot_card": "The Tower"
+    "Loss of Direction: Dreaming of a car accident on the highway could symbolize a feeling of being lost or uncertain about the direction you're taking in life. It might indicate a need to reevaluate your goals and plans.",
+    "Speed and Overwhelm: Highways often represent the fast pace of life. A car accident could indicate that you're moving too quickly and are at risk of burning out or facing challenges due to the speed at which you're going.",
+    "Conflict or Avoidance: Highways can also be seen as a path to confrontation or avoiding certain issues. This dream might suggest unresolved conflicts or the need to face something you've been avoiding.",
+    "Lack of Control: High speeds on the highway can sometimes translate to a lack of control in your waking life. This dream could point to situations where you feel things are moving too fast for you to manage.",
+    "Warning of Risks: Dreams of accidents can sometimes serve as warnings. This dream might be encouraging you to slow down, be cautious, and avoid taking unnecessary risks.",
+    "Fear and Anxiety: A car accident on the highway might reflect feelings of fear and anxiety about the challenges and uncertainties you're facing."
+],
+  "recommended_tarot_card": "The Chariot"
 }
 
-def exectueGpt(text) : 
+def executeGpt(text) : 
     response = openai.ChatCompletion.create(
         model = "gpt-3.5-turbo",
         messages = [
-        {"role": "system", "content": "You are a helpful assistant who interprets dreams and recommends appropriate tarot cards."},
+        {"role": "system", "content": "You are a helpful assistant who interprets dreams and recommends appropriate one tarot card among 22  tarot cards."},
         {"role": "user", "content": """
-            I had a dream about a car accident.
-            Please interpret this dream and recommend 1 out of 22 major arcana tarot cards.
-            (Judgement, Justcie, Strength, Temperance, The Chariot, The Death, The Devil, The Emperor, The Empress, The Fool, The Hanged Man, The Hermit, The Hierophant, The High Priestess, The Lovers, The Magician, The Moon, The Star, The Sun, The Tower, The World, Wheel of Fortune)
-            Give me the respone in JSON format.
-         """},
+         I had a dream that I had a car accident on the highway.
+         Please interpret this dream and recommend 1 out of 22 tarot cards. (Judgement, Justice, Strength, Temperance, The Chariot, The Death, The Devil, The Emperor, The Empress, The Fool, The Hanged Man, The Hermit, The Hierophant, The High Priestess, The Lovers, The Magician, The Moon, The Star, The Sun, The Tower, The World, Wheel of Fortune)
+         Give me the response in JSON format and the format must follow below.""" },
         {"role": "assistant", "content": json.dumps(gpt_template)},
-        {"role": "user", "content": text + " Please interpret this dream and recommend 1 out of 78 tarot cards. Give me the respone in JSON format."}   
+        {"role": "user", "content": text + " Please interpret this dream and recommend 1 out of 22 tarot cards. Give me the resposne in JSON format."}   
     ])
-
 
     if response :
         return response['choices'][0]['message']['content']
@@ -45,7 +42,6 @@ def exectueGpt(text) :
 
 def executeDalle(dream, tarot_card) :
     tarot_card = tarot_card.lower().replace(' ', '_')
-    tarot_card = 'the_tower'
     image = Image.open("./img/image/{tarot_card}.png".format(tarot_card = tarot_card)).convert("RGBA")
     mask = Image.open("./img/mask/{tarot_card}_mask.png".format(tarot_card = tarot_card)).convert("RGBA")
     b1 = io.BytesIO()
@@ -59,7 +55,7 @@ def executeDalle(dream, tarot_card) :
     response = openai.Image.create_edit(
         image = b1,
         mask = b2,
-        prompt = "Draw a tarot card about {dream}.".format(dream = dream),
+        prompt = "Draw about {dream} by medieval drawing style.".format(dream = dream),
         n = 1,
         size = "1024x1024",
     )
@@ -98,17 +94,28 @@ def generate(utterance) :
     openai.api_key = OPEN_AI_API_KEY
 
     eng_utterance = kor_to_eng_translation(utterance)
-    eng_gpt_result = json.loads(exectueGpt(eng_utterance))
+    eng_gpt_result = json.loads(executeGpt(eng_utterance))
 
+    eng_gpt_result = json.loads(executeGpt(utterance))
     if eng_gpt_result == None :
-        return ModelResult(None, None)
+        return ModelResult(True, None)
+    
+    if 'recommended_tarot_card' in eng_gpt_result :
+        recommended_tarot_card = eng_gpt_result['recommended_tarot_card']
+    else :
+        return ModelResult(True, None)
 
-    dream_title = eng_gpt_result['dream_title']
-    possible_meanings = eng_gpt_result['possible_meanings']
-    recommended_tarot_card = eng_gpt_result['recommended_tarot_card']
+    if 'dream_title' in eng_gpt_result : 
+        dream_title = eng_gpt_result['dream_title']
+    else :
+        dream_title = ""
 
+    if 'possible_meanings' in eng_gpt_result :
+        possible_meanings = eng_gpt_result['possible_meanings']
+    else :
+        possible_meanings = []
+    
     image_url = executeDalle(dream_title, recommended_tarot_card)
-
     # meaining_keys = [meaning.split(':')[0] for meaning in possible_meanings]
     kor_dream_title = eng_to_kor_translation(dream_title)
     kor_possible_meanings = [eng_to_kor_translation(meaning) for meaning in possible_meanings]
