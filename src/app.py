@@ -45,7 +45,7 @@ def regenerate_dream() :
             return Response(modelResult.message, status = HTTPStatus.INTERNAL_SERVER_ERROR)
         
         return jsonify({
-            "messsage" : modelResult.message,
+            "message" : modelResult.message,
             "image_url" : modelResult.data['image_url']
         })
 
