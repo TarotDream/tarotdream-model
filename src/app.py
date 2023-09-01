@@ -18,7 +18,7 @@ def generate_dream() :
         modelResult = generate(utterance)
 
         if modelResult.error == True :
-            return Response(modelResult.message, status = HTTPStatus.BAD_REQUEST)
+            return Response(modelResult.message, status = HTTPStatus.INTERNAL_SERVER_ERROR)
     
         return jsonify({
             "message" : modelResult.message,

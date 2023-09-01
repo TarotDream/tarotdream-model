@@ -2,10 +2,11 @@ import openai
 from dotenv import load_dotenv
 import os
 from time import sleep
+from datetime import datetime
 
 load_dotenv('../.env')
 OPEN_AI_API_KEY = os.getenv("OPEN_AI_API_KEY")
-
+openai.api_key = OPEN_AI_API_KEY
 
 def open_file(filepath):
     with open(filepath, 'r', encoding='utf-8') as infile:
@@ -18,9 +19,7 @@ def save_file(filepath, content):
 
 
 def upload_gpt():
-    openai.api_key = OPEN_AI_API_KEY
-
-    with open("fine_tune.jsonl", "rb") as file:
+    with open("./src/fine_tune.jsonl", "rb") as file:
         response = openai.File.create(
             file=file,
             purpose='fine-tune'
@@ -33,7 +32,6 @@ def upload_gpt():
 
 def tuning_gpt(file_id):
     model_name = "gpt-3.5-turbo"
-
     response = openai.FineTuningJob.create(
         training_file=file_id,
         model=model_name
@@ -49,13 +47,18 @@ def retrieve_gpt(job_id):
     while True:
         res = openai.FineTuningJob.retrieve(job_id)
         if res['status'] != "running":
-            print(res)
+            f = open("./src/fine_tune_model.txt", 'a')
+            f.write(str(datetime.now()) + '\n')
+            f.write(str(res))
+            f.write('\n')
+            f.close()
             break
         else:
-            print(".", end="")
+            print(".", end="", flush=True)
             sleep(100)
 
 
 uploaded_file_id = upload_gpt()
+sleep(100)
 uploaded_job_id = tuning_gpt(uploaded_file_id)
 retrieve_gpt(uploaded_job_id)
