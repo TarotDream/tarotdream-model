@@ -6,31 +6,14 @@ import os
 from dotenv import load_dotenv
 from papago import kor_to_eng_translation, eng_to_kor_translation
 
-gpt_template = {
-  "dream_title": "A Car Accident on the Highway",
-  "possible_meanings": [
-    "Loss of Direction: Dreaming of a car accident on the highway could symbolize a feeling of being lost or uncertain about the direction you're taking in life. It might indicate a need to reevaluate your goals and plans.",
-    "Speed and Overwhelm: Highways often represent the fast pace of life. A car accident could indicate that you're moving too quickly and are at risk of burning out or facing challenges due to the speed at which you're going.",
-    "Conflict or Avoidance: Highways can also be seen as a path to confrontation or avoiding certain issues. This dream might suggest unresolved conflicts or the need to face something you've been avoiding.",
-    "Lack of Control: High speeds on the highway can sometimes translate to a lack of control in your waking life. This dream could point to situations where you feel things are moving too fast for you to manage.",
-    "Warning of Risks: Dreams of accidents can sometimes serve as warnings. This dream might be encouraging you to slow down, be cautious, and avoid taking unnecessary risks.",
-    "Fear and Anxiety: A car accident on the highway might reflect feelings of fear and anxiety about the challenges and uncertainties you're facing."
-],
-  "recommended_tarot_card": "The Chariot"
-}
-
 def executeGpt(text) : 
     try :
         response = openai.ChatCompletion.create(
         model = "gpt-3.5-turbo",
         messages = [
-            {"role": "system", "content": "You are a helpful assistant who interprets dreams and recommends appropriate one tarot card among 22  tarot cards."},
-            {"role": "user", "content": """
-            I had a dream that I had a car accident on the highway.
-            Please interpret this dream and recommend 1 out of 22 tarot cards. (Judgement, Justice, Strength, Temperance, The Chariot, The Death, The Devil, The Emperor, The Empress, The Fool, The Hanged Man, The Hermit, The Hierophant, The High Priestess, The Lovers, The Magician, The Moon, The Star, The Sun, The Tower, The World, Wheel of Fortune)
-            Give me the response in JSON format and the format must follow below.""" },
-            {"role": "assistant", "content": json.dumps(gpt_template)},
-            {"role": "user", "content": text + " Please interpret this dream and recommend 1 out of 22 tarot cards. Give me the resposne in JSON format."}   
+            {"role": "system",
+             "content": "너는 세상에서 꿈 해석을 가장 잘하고 꿈에 대해 가장 적합한 22개의 메이저 타로카드 (Judgement, Justice, Strength, Temperance, The Chariot, The Death, The Devil, The Emperor, The Empress, The Fool, The Hanged Man, The Hermit, The Hierophant, The High Priestess, The Lovers, The Magician, The Moon, The Star, The Sun, The Tower, The World, Wheel of Fortune) 중 하나의 타로카드를 추천해주는 점술가야."},
+            {"role": "user", "content": text + "을 해석해줘. Assistant에 맞는 JSON 형식으로 대답해줘."},
         ])
 
         if response :
