@@ -22,6 +22,7 @@ def executeGpt(text) :
             return None
     
     except Exception as e :
+        print('[exectueGpt Error]', str(e))
         raise e
     
 
@@ -53,6 +54,7 @@ def executeDalle(dream, tarot_card) :
             return None
         
     except Exception as e :
+        print('[executeDalle Error]', str(e))
         raise e
 
 def regenerate(dream, tarot_card) :
@@ -75,7 +77,8 @@ def regenerate(dream, tarot_card) :
         return ModelResult(False, "success", data)
     
     except Exception as e :
-        raise e;
+        print('[regenerate Error]', str(e))
+        raise e
 
 def generate(utterance) :
     try :
@@ -112,6 +115,7 @@ def generate(utterance) :
         return ModelResult(False, "success", data)
 
     except Exception as e :
+        print('[generate Error]', str(e))
         raise e
 
 class ModelResult :
